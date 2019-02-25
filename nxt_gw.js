@@ -36,7 +36,7 @@ io.on('connection', function (client) {
   
     interval = setInterval(function () {
         client.send('NXT Gateway server message'); 
-    }, 3000);
+    }, 2000);
 
     client.on('stop', function (data) {
         console.log("NXT Gateway received stop message");

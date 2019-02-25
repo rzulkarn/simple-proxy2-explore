@@ -3,10 +3,6 @@
 //
 var ws;
 
-function handleInitialConnect() {
-    // Send Authorize request
-}
-
 function handleWebsocketConnect() {
     ws = io.connect('ws://localhost:8081');
 
@@ -30,8 +26,6 @@ function handleWebsocketConnect() {
 
 function handleConnect() {
     $("body").append("<p><b>Connecting to ws://localhost:8080...</b></p>");
-
-    handleInitalConnect();   // Send 'Authorize' request endpoint 
     handleWebsocketConnect(); // Setup Websocket / tunnel with proxy gateway
 }
 
