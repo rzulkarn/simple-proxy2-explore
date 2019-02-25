@@ -49,9 +49,16 @@ app.get('/dashboard', function(req, res) {
     console.log("NXT App handling /dashboard route");
 
     httpServer.get('http://localhost:8081/dashboard', (gw_res) => {
-        console.log("NXT App received dashboard HTML chunk response");
+        console.log("NXT App received dashboard HTML redirect response");
 
-        handleHTMLResponse(res, gw_res);
+        if (gw_res.statusCode === 302) {
+            console.log("NXT App redirect request");
+            res.redirect(gw_res.headers["location"]);
+        }
+        else {
+            res.writeHead(200);
+            res.end();
+        }
     });
 });
 

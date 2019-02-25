@@ -23,6 +23,8 @@ app.get('/authorize', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
     console.log("NXT Gateway received dashboard request");
+    res.writeHead(302,{Location: 'http://grafana.com'});
+    res.end();
 });
 
 app.get('/about', (req, res) => {
