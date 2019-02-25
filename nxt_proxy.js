@@ -13,11 +13,12 @@ var proxy = new httpProxy.createProxyServer({
 });
 
 var proxyServer = http.createServer(function (req, res) {
-    console.log("NXT Proxy handling HTTP request callback");
+    console.log("NXT Proxy handling HTTP request callback, url: " + req.url);
     console.log(JSON.stringify(req.headers, true, 2));
     //res.writeHead(200, { 'Content-Type': 'text/plain' });
     //res.write('request successfully proxied!' + '\n' + JSON.stringify(req.headers, true, 2));
     //res.end();
+
     proxy.web(req, res);
 });
 

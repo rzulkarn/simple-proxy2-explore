@@ -20,12 +20,25 @@ var server = app.listen(4000, function() {
 });
 
 // Handle Routes
+
 app.get('/', function(req, res) {
+    // Let me in page
     res.render('index');
 });
 
-app.post('/login', function(req, res) {
+app.post('/welcome', function(req, res) {
+    // Welcome page
     res.render('nxt_welcome');
+});
+
+app.get('/authorize', function(req, res) {
+    console.log("NXT App handling /authorize route");
+
+    httpServer.get('http://localhost:8081/authorize', (gw_res) => {
+        console.log("NXT App received authorize HTML chunk response");
+
+        handleHTMLResponse(res, gw_res);
+    });
 });
 
 app.get('/connect', function(req, res) {
@@ -33,7 +46,36 @@ app.get('/connect', function(req, res) {
 });
 
 app.get('/dashboard', function(req, res) {
+    console.log("NXT App handling /dashboard route");
 
+    httpServer.get('http://localhost:8081/dashboard', (gw_res) => {
+        console.log("NXT App received dashboard HTML chunk response");
+
+        handleHTMLResponse(res, gw_res);
+    });
 });
 
+app.get('/about', function(req, res) {
+    console.log("NXT App handling /about route");
 
+    httpServer.get('http://localhost:8081/about', (gw_res) => {
+        console.log("NXT App received about HTML chunk response");
+
+        handleHTMLResponse(res, gw_res);
+    });
+});
+
+function handleHTMLResponse(res, gw_res) {
+    var data = '';
+
+    gw_res.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    gw_res.on('end', () => {
+        // post the response to the client
+        res.writeHead(200);
+        res.write(data);
+        res.end();
+    })
+}
