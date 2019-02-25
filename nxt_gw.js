@@ -1,5 +1,5 @@
 //
-// NXT Portal + Websocket Server
+// NXT HTTP + Websocket Server
 //
 const path = require('path');
 
@@ -9,6 +9,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var client = require('socket.io-client');
 var interval;
+const intervalTime = 2000; // milliseconds
 
 server.listen(8080);
 console.log("NXT Test Gateway Listening on port 8080");
@@ -36,7 +37,7 @@ io.on('connection', function (client) {
   
     interval = setInterval(function () {
         client.send('NXT Gateway server message'); 
-    }, 2000);
+    }, intervalTime);
 
     client.on('stop', function (data) {
         console.log("NXT Gateway received stop message");
@@ -48,7 +49,7 @@ io.on('connection', function (client) {
 
         interval = setInterval(function () {
             client.send('NXT Gateway server message restarted'); 
-        }, 3000);
+        }, intervalTime);
     });
 
     client.on('disconnect', function (data) {
