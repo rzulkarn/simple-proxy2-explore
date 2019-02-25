@@ -2,14 +2,55 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>NXT Connector</title>
+        <title>NXT Connect</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="/nxt_connect.js"></script>
+        <style type="text/css">
+            .connectbtn {
+	            background-color:#44c767;
+	            -moz-border-radius:20px;
+	            -webkit-border-radius:20px;
+	            border-radius:20px;
+	            border:1px solid #18ab29;
+	            display:inline-block;
+                cursor:pointer;
+                color:#ffffff;
+                font-family:Arial;
+                font-size:14px;
+                padding:13px 31px;
+                text-decoration:none;
+                text-shadow:0px 1px 0px #2f6627;
+            }
+            .connectbtn:hover {
+                background-color:#5cbf2a;
+            }
+            .connectbtn:active {
+                position:relative;
+                top:1px;
+            }
+        </style>
     </head>
     <body>
-        <h2>Connecting to ... ws://localhost:8081</h2>
-        <p id="connector"></p>
-        <script>cloudConnect(io)</script>
+        <div>
+            <button id="connect", class="connectbtn">Connect</button>
+            <script>
+                $("#connect").click(function() {
+                    handleConnect();
+                });
+            </script>
+            <button id="stop", class="connectbtn">Stop</button>
+            <script>
+                 $("#stop").click(function() {
+                    handleStop();
+                 });
+            </script>
+            <button id="restart", class="connectbtn">Restart</button>
+            <script>
+                $("#restart").click(function() {
+                    handleRestart();
+                });
+            </script>   
+        </div>
     </body>
 </html>

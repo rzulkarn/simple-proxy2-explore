@@ -12,4 +12,4 @@
 * Gateway PORT 8080
 
 ## 
-* NXT-APP ---(ws)--- NXT-PROXY ---(ws)--- NXT-GW
+* NXT-APP ---(ws)--- (8081) NXT-PROXY ---(ws)--- (8080) NXT-GW

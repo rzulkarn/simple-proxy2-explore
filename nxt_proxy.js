@@ -26,9 +26,8 @@ var proxyServer = http.createServer(function (req, res) {
 //
 proxyServer.on('upgrade', function (req, socket, head) {
     console.log("NXT Proxy handling HTTP upgrade event callback");
-    setTimeout(function () {
-       proxy.ws(req, socket, head);
-    }, 1000);
+    console.log(JSON.stringify(req.headers, true, 2));
+    proxy.ws(req, socket, head);
 });
 
 proxyServer.listen(8081);

@@ -1,5 +1,5 @@
 // Query DOM
-var btn = document.getElementById('startstreaming');
+//var btn = document.getElementById('startstreaming');
 
 //var socket = io.connect('http://localhost:4000');
 //
