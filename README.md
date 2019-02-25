@@ -1,15 +1,16 @@
+## Fictitious
+* NXT/Nextensio names
+
 ## Installation
-* npm install colors concurrently ejs express http-proxy nodemon socket.io socket.io-client
+* npm install colors concurrently ejs express http-proxy nodemon socket.io socket.io-client cors
 
 ## How to run the app, the proxy and the gateway
 * npm run dev
 
-## Browser
+## Quick start
 * localhost:4000
 
-## Ports
-* HTTP Server PORT 8081
-* Gateway PORT 8080
-
-## 
-* NXT-APP ---(ws)--- (8081) NXT-PROXY ---(ws)--- (8080) NXT-GW
+## Node.js Instances
+* NXT-APP : a test utility client
+* NXT-PROXY : a http and proxy server that listen on port 8080
+* NXT-GW : a http and websocket server that listen on port 8081
