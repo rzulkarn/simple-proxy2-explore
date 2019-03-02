@@ -36,6 +36,7 @@ app.get('/authorize', function(req, res) {
 
     httpServer.get('http://localhost:8081/authorize', (gw_res) => {
         console.log("NXT App received authorize HTML chunk response");
+        console.log(gw_res.headers);
 
         handleHTMLResponse(res, gw_res);
     });

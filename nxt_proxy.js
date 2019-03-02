@@ -1,15 +1,26 @@
 var color = require('colors');
 var http = require('http');
 var httpProxy = require('http-proxy');
+var token;
+
+var isAuthorized = false;
 
 //
 // Setup a proxy to our target host 
 //
 var proxy = new httpProxy.createProxyServer({
-  target: {
-    host: 'localhost',
-    port: 8080
-  }
+});
+
+proxy.on('proxyReq', function (proxyReq, req, res, options) {
+  // Insert Token
+  proxyReq.setHeader('x-nxt-token', 'access token');
+  // Insert X-Forwarded-For label
+  proxyReq.setHeader('X-Forwarded-For', '10.10.10.1');
+  console.log('REQ event called', JSON.stringify(req.headers, true, 2));
+});
+
+proxy.on('proxyRes', function (proxyRes, req, res, options) {
+  console.log('PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
 });
 
 var proxyServer = http.createServer(function (req, res) {
@@ -18,8 +29,8 @@ var proxyServer = http.createServer(function (req, res) {
     //res.writeHead(200, { 'Content-Type': 'text/plain' });
     //res.write('request successfully proxied!' + '\n' + JSON.stringify(req.headers, true, 2));
     //res.end();
-
-    proxy.web(req, res);
+// console.log(req);
+    proxy.web(req, res, { target: "http://localhost:8080/" } );
 });
 
 // Listen to the `upgrade` event and proxy the
@@ -28,7 +39,7 @@ var proxyServer = http.createServer(function (req, res) {
 proxyServer.on('upgrade', function (req, socket, head) {
     console.log("NXT Proxy handling HTTP upgrade event callback");
     console.log(JSON.stringify(req.headers, true, 2));
-    proxy.ws(req, socket, head);
+    proxy.ws(req, socket, head, { target: "http://localhost:8080", ws: "true", xfwd: "true" } );
 });
 
 proxyServer.listen(8081);
