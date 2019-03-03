@@ -12,5 +12,5 @@
 
 ## Node.js Instances
 * NXT-APP : a test utility client
-* NXT-PROXY : a http and proxy server that listen on port 8080
-* NXT-GW : a http and websocket server that listen on port 8081
+* NXT-PROXY : a http and proxy server that listen on port 8081
+* NXT-GW : a http and websocket server that listen on port 8080

@@ -35,10 +35,16 @@ app.get('/authorize', function(req, res) {
     console.log("NXT App handling /authorize route");
 
     httpServer.get('http://localhost:8081/authorize', (gw_res) => {
-        console.log("NXT App received authorize HTML chunk response");
+        console.log("NXT App received authorize HTML chunk response", gw_res.statusCode);
         console.log(gw_res.headers);
 
-        handleHTMLResponse(res, gw_res);
+        if (gw_res.statusCode === 302) {
+            console.log("NXT App redirect request to ", 'http://localhost:8081'+gw_res.headers['location']);
+            res.redirect('http://localhost:8081' + gw_res.headers["location"]);
+        }
+        else {
+            handleHTMLResponse(res, gw_res);
+        }
     });
 });
 
@@ -53,8 +59,9 @@ app.get('/dashboard', function(req, res) {
         console.log("NXT App received dashboard HTML redirect response");
 
         if (gw_res.statusCode === 302) {
-            console.log("NXT App redirect request");
-            res.redirect(gw_res.headers["location"]);
+            console.log("NXT App redirect request to ", gw_res.headers['location']);
+            res.redirect(gw_res.headers['location']);
+            res.end();
         }
         else {
             res.writeHead(200);
@@ -82,7 +89,7 @@ function handleHTMLResponse(res, gw_res) {
 
     gw_res.on('end', () => {
         // post the response to the client
-        res.writeHead(200);
+        //res.writeHead(200);
         res.write(data);
         res.end();
     })

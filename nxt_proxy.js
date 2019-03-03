@@ -12,15 +12,17 @@ var proxy = new httpProxy.createProxyServer({
 });
 
 proxy.on('proxyReq', function (proxyReq, req, res, options) {
-  // Insert Token
-  proxyReq.setHeader('x-nxt-token', 'access token');
-  // Insert X-Forwarded-For label
-  proxyReq.setHeader('X-Forwarded-For', '10.10.10.1');
-  console.log('REQ event called', JSON.stringify(req.headers, true, 2));
+  // Insert NXT SRC
+  proxyReq.setHeader('x-nxt-src', 'source_destination');
+  proxyReq.setHeader('Content-type', 'text/html');
+  proxyReq.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36');
+  proxyReq.setHeader('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8');
+  console.log('PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
 });
 
 proxy.on('proxyRes', function (proxyRes, req, res, options) {
   console.log('PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
+  console.log('PROXY-RES statusCode', proxyRes.statusCode, res.statusCode);
 });
 
 var proxyServer = http.createServer(function (req, res) {
@@ -29,7 +31,6 @@ var proxyServer = http.createServer(function (req, res) {
     //res.writeHead(200, { 'Content-Type': 'text/plain' });
     //res.write('request successfully proxied!' + '\n' + JSON.stringify(req.headers, true, 2));
     //res.end();
-// console.log(req);
     proxy.web(req, res, { target: "http://localhost:8080/" } );
 });
 
@@ -39,7 +40,7 @@ var proxyServer = http.createServer(function (req, res) {
 proxyServer.on('upgrade', function (req, socket, head) {
     console.log("NXT Proxy handling HTTP upgrade event callback");
     console.log(JSON.stringify(req.headers, true, 2));
-    proxy.ws(req, socket, head, { target: "http://localhost:8080", ws: "true", xfwd: "true" } );
+    proxy.ws(req, socket, head, { target: "http://localhost:8080", ws: 'true', xfwd: 'true' } );
 });
 
 proxyServer.listen(8081);

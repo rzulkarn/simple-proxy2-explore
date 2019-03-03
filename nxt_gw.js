@@ -45,6 +45,44 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/authorize', oidc.ensureAuthenticated(), authRouter);
 
 //
+// Handle Default Route
+//
+app.get('/', (req, res) => {
+    if (req.userContext) {
+        console.log(req.userContext);
+        res.send(`
+          Hello ${req.userContext.userinfo.name}!
+          <form method="POST" action="/logout">
+            <button type="submit">Logout</button>
+          </form>
+        `);
+      } else {
+        res.send('Please <a href="/login">login</a>');
+      }
+    console.log('NXT GW default route, statusCode: ', res.statusCode);
+});
+  
+app.get('/logout', (req, res) => {
+    console.log('NXT GW logout route');
+
+    if (req.userContext) {
+      const idToken = req.userContext.tokens.id_token
+      const to = encodeURI(process.env.HOST_URL)
+      const params = `id_token_hint=${idToken}&post_logout_redirect_uri=${to}`
+      req.logout()
+      res.redirect(`${process.env.OKTA_ORG_URL}/oauth2/default/v1/logout?${params}`)
+
+      console.log('NXT GW logout route1');
+
+    } else {
+      res.redirect('/')
+
+      console.log('NXT GW logout route2');
+
+    }
+});
+
+//
 // Simple JWT test route
 //
 app.get('/jwttest', (req, res) => {
@@ -65,22 +103,6 @@ app.get('/jwttest', (req, res) => {
     });
 });
 
-//
-// Middleware for protected route
-//
-// function ensureToken(req, res, next) {
-//     const bearerHeader = req.headers["authorization"];
-//     if (typeof bearerHeader !== 'undefined') {
-//         const bearer = bearerHeader.split(" ");
-//         const bearerToken = bearer[1];
-//         req.token = bearerToken;
-//         next();
-//     }
-//     else {
-//         res.sendStatus(403);
-//     }
-// }
-
 app.get('/dashboard', (req, res) => {
     console.log("NXT Gateway received dashboard request");
     res.writeHead(302,{Location: 'http://grafana.com'});
@@ -89,7 +111,6 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/about', (req, res) => {
     console.log("REQ Header: x-nxt-token value", req.headers['x-nxt-token']);
-    console.log("REQ Header: x-forwarded-for value", req.headers['x-forwarded-for']);
     console.log("NXT Gateway sent about.html from " + __dirname);
     res.sendFile(path.join(__dirname + '/public_gw/about.html'));
 });

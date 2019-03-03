@@ -11,13 +11,16 @@ router.post('/', (req, res, next) => {
 
   todosByUser[req.userContext.userinfo.sub] = todo
 
+  console.log("NXT GW ::: Auth post middleware");
   next()
 })
 
 router.use('/', (req, res) => {
   const todo = todosByUser[req.userContext.userinfo.sub] || []
 
-  res.json({ title: 'To-do list', todo, userinfo: req.userContext.userinfo });
+  res.json({ title: 'Registration Successful!', todo, userinfo: req.userContext.userinfo });
+  console.log("NXT GW ::: Auth Use middleware");
+  console.log(req.userContext);
 })
 
 module.exports = router
