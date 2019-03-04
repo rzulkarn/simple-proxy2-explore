@@ -1,16 +1,19 @@
 //
 // NXT Proxy Agent
 //
-var http = require('http');
-var httpProxy = require('http-proxy');
+const http = require('http');
+const httpProxy = require('http-proxy');
+const urlParser = require('url');
+const ioClient = require('socket.io-client');
 var nxtIdToken;
 
 //
-// Setup a proxy to our target host 
+// Setup 2 proxies: Portal and Gateway
 //
-var proxy = new httpProxy.createProxyServer({});
+var portalProxy = new httpProxy.createProxyServer({});
+var ingressGWProxy = new httpProxy.createProxyServer({});
 
-proxy.on('proxyReq', function (proxyReq, req, res, options) {
+portalProxy.on('proxyReq', function (proxyReq, req, res, options) {
   // Insert NXT SRC DEST (example)
   proxyReq.setHeader('x-nxt-src', 'source_destination');
   proxyReq.setHeader('Content-type', 'text/html');
@@ -19,7 +22,7 @@ proxy.on('proxyReq', function (proxyReq, req, res, options) {
   console.log('PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
 });
 
-proxy.on('proxyRes', function (proxyRes, req, res, options) {
+portalProxy.on('proxyRes', function (proxyRes, req, res, options) {
   console.log('PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
   console.log('PROXY-RES statusCode', proxyRes.statusCode, res.statusCode);
 
@@ -37,16 +40,32 @@ var proxyServer = http.createServer(function (req, res) {
     console.log(JSON.stringify(req.headers, true, 2));
     //console.log(req);
     //console.log(res);
-    proxy.web(req, res, { target: "http://localhost:8080/" } );
+
+    // If URL is comming for ws, go to port 8082
+    const url = urlParser.parse(req.url);
+    const wsProtocol = url.protocol;
+    const wsPath = url.pathname;
+    console.log("NXT Proxy, urlProtocol:", wsProtocol);
+    console.log("NXT Proxy, urlPath:", wsPath);
+    if (wsPath === '/socket.io/' ||
+        wsProtocol === 'ws:' ||
+        wsProtocol === 'wss:') {
+      console.log("NXT Proxy, detected WebSocket connection request, connecting to localhost:8082");
+      ingressGWProxy.web(req, res, { target: "http://localhost:8082/" } );
+    }
+    else {
+      console.log("Going to localhost 8080");
+      portalProxy.web(req, res, { target: "http://localhost:8080/" } );
+    }
 });
 
 // Listen to the `upgrade` event and proxy the
 // WebSocket requests as well.
 //
 proxyServer.on('upgrade', function (req, socket, head) {
-    console.log("NXT Proxy handling HTTP upgrade event callback");
+    console.log("NXT Proxy handling HTTP upgrade event callback, url:", req.url);
     console.log(JSON.stringify(req.headers, true, 2));
-    proxy.ws(req, socket, head, { target: "http://localhost:8080", ws: 'true', xfwd: 'true' } );
+    ingressGWProxy.ws(req, socket, head, { target: "ws://localhost:8082", ws: 'true', xfwd: 'true' } );
 });
 
 proxyServer.listen(8081);

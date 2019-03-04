@@ -63,32 +63,3 @@ app.get('/dashboard', (req, res) => {
 //
 //app.use('/authorize', oidc.ensureAuthenticated(), authRouter);
 app.use(oidc.ensureAuthenticated(), protectedRouter);
-
-// Handle WebSocket Events
-
-io.on('connection', function (client) {
-    console.log('NXT Gateway got websocket connection on port 8080');
-  
-    interval = setInterval(function () {
-        client.send('NXT Gateway server message'); 
-    }, intervalTime);
-
-    client.on('stop', function (data) {
-        console.log("NXT Gateway received stop message");
-        clearInterval(interval);
-    });
-    
-    client.on('restart', function (data) {
-        console.log("NXT Gateway received restart message");
-
-        interval = setInterval(function () {
-            client.send('NXT Gateway server message restarted'); 
-        }, intervalTime);
-    });
-
-    client.on('disconnect', function (data) {
-        console.log("NXT Gateway client disconnected");
-        clearInterval(interval);
-    });
-
-});

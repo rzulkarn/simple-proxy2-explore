@@ -1,14 +1,13 @@
 //
 // NXT WebSocket Gateway Test
 //
-var express = require('express');
+const express = require('express');
 const path = require('path');
 
-var app = express();
+const gwApp = express();
 
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var client = require('socket.io-client');
+const server = require('http').Server(gwApp);
+const io = require('socket.io')(server);
 var interval;
 const intervalTime = 2000; // milliseconds
 
@@ -18,7 +17,7 @@ console.log("NXT WebSocket Gateway Listening on port 8082");
 // Handle WebSocket Events
 
 io.on('connection', function (client) {
-    console.log('NXT Gateway got websocket connection on port 8080');
+    console.log('NXT Gateway received websocket connection on port 8082');
   
     interval = setInterval(function () {
         client.send('NXT Gateway server message'); 
