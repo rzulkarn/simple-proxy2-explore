@@ -1,21 +1,20 @@
-var color = require('colors');
+//
+// NXT Proxy Agent
+//
 var http = require('http');
 var httpProxy = require('http-proxy');
-var token;
-
-var isAuthorized = false;
+var nxtIdToken;
 
 //
 // Setup a proxy to our target host 
 //
-var proxy = new httpProxy.createProxyServer({
-});
+var proxy = new httpProxy.createProxyServer({});
 
 proxy.on('proxyReq', function (proxyReq, req, res, options) {
-  // Insert NXT SRC
+  // Insert NXT SRC DEST (example)
   proxyReq.setHeader('x-nxt-src', 'source_destination');
   proxyReq.setHeader('Content-type', 'text/html');
-  proxyReq.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36');
+  //proxyReq.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36');
   proxyReq.setHeader('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8');
   console.log('PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
 });
@@ -23,14 +22,21 @@ proxy.on('proxyReq', function (proxyReq, req, res, options) {
 proxy.on('proxyRes', function (proxyRes, req, res, options) {
   console.log('PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
   console.log('PROXY-RES statusCode', proxyRes.statusCode, res.statusCode);
+
+  if (typeof proxyRes.headers['x-nxt-token'] === 'undefined') { 
+    console.log("PROXY-RES, token undefined"); 
+  }
+  else { 
+    console.log("PROXY-RES, token exists!"); 
+    nxtIdToken = proxyRes.headers['x-nxt-token'];
+  }
 });
 
 var proxyServer = http.createServer(function (req, res) {
     console.log("NXT Proxy handling HTTP request callback, url: " + req.url);
     console.log(JSON.stringify(req.headers, true, 2));
-    //res.writeHead(200, { 'Content-Type': 'text/plain' });
-    //res.write('request successfully proxied!' + '\n' + JSON.stringify(req.headers, true, 2));
-    //res.end();
+    //console.log(req);
+    //console.log(res);
     proxy.web(req, res, { target: "http://localhost:8080/" } );
 });
 

@@ -31,54 +31,31 @@ app.post('/welcome', function(req, res) {
     res.render('nxt_welcome');
 });
 
-app.get('/authorize', function(req, res) {
-    console.log("NXT App handling /authorize route");
-
-    httpServer.get('http://localhost:8081/authorize', (gw_res) => {
-        console.log("NXT App received authorize HTML chunk response", gw_res.statusCode);
-        console.log(gw_res.headers);
-
-        if (gw_res.statusCode === 302) {
-            console.log("NXT App redirect request to ", 'http://localhost:8081'+gw_res.headers['location']);
-            res.redirect('http://localhost:8081' + gw_res.headers["location"]);
-        }
-        else {
-            handleHTMLResponse(res, gw_res);
-        }
-    });
+app.get('/welcome', function(req, res) {
+    // Welcome page
+    res.render('nxt_welcome');
 });
 
 app.get('/connect', function(req, res) {
     res.render('nxt_connect');
 });
 
-app.get('/dashboard', function(req, res) {
-    console.log("NXT App handling /dashboard route");
+// app.get('/dashboard', function(req, res) {
+//     console.log("NXT App handling /dashboard route");
 
-    httpServer.get('http://localhost:8081/dashboard', (gw_res) => {
-        console.log("NXT App received dashboard HTML redirect response");
+//     httpServer.get('http://localhost:8081/dashboard', (gw_res) => {
+//         console.log("NXT App received dashboard HTML redirect response");
 
-        if (gw_res.statusCode === 302) {
-            console.log("NXT App redirect request to ", gw_res.headers['location']);
-            res.redirect(gw_res.headers['location']);
-            res.end();
-        }
-        else {
-            res.writeHead(200);
-            res.end();
-        }
-    });
-});
-
-app.get('/about', function(req, res) {
-    console.log("NXT App handling /about route");
-
-    httpServer.get('http://localhost:8081/about', (gw_res) => {
-        console.log("NXT App received about HTML chunk response");
-
-        handleHTMLResponse(res, gw_res);
-    });
-});
+//         if (gw_res.statusCode === 302) {
+//             console.log("NXT App redirect request to ", gw_res.headers['location']);
+//             res.redirect(gw_res.headers['location']);
+//         }
+//         else {
+//             res.writeHead(200);
+//             res.end();
+//         }
+//     });
+// });
 
 function handleHTMLResponse(res, gw_res) {
     var data = '';
@@ -89,7 +66,7 @@ function handleHTMLResponse(res, gw_res) {
 
     gw_res.on('end', () => {
         // post the response to the client
-        //res.writeHead(200);
+        res.writeHead(200);
         res.write(data);
         res.end();
     })
