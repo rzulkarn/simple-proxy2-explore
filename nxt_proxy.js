@@ -19,12 +19,12 @@ portalProxy.on('proxyReq', function (proxyReq, req, res, options) {
   proxyReq.setHeader('Content-type', 'text/html');
   //proxyReq.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36');
   proxyReq.setHeader('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8');
-  console.log('PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
+  console.log('Portal PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
 });
 
 portalProxy.on('proxyRes', function (proxyRes, req, res, options) {
-  console.log('PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
-  console.log('PROXY-RES statusCode', proxyRes.statusCode, res.statusCode);
+  console.log('Portal PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
+  console.log('Portal PROXY-RES statusCode', proxyRes.statusCode, res.statusCode);
 
   if (typeof proxyRes.headers['x-nxt-token'] === 'undefined') { 
     console.log("PROXY-RES, token undefined"); 
@@ -33,6 +33,14 @@ portalProxy.on('proxyRes', function (proxyRes, req, res, options) {
     console.log("PROXY-RES, token exists!"); 
     nxtIdToken = proxyRes.headers['x-nxt-token'];
   }
+});
+
+ingressGWProxy.on('proxyReq', function (proxyRes, req, res, options) {
+  console.log('INGRESS GW PROXY-REQ event called', JSON.stringify(req.headers, true, 2));
+});
+
+ingressGWProxy.on('proxyRes', function (proxyRes, req, res, options) {
+  console.log('INGRESS GW PROXY-RES event called', JSON.stringify(proxyRes.headers, true, 2));
 });
 
 var proxyServer = http.createServer(function (req, res) {
