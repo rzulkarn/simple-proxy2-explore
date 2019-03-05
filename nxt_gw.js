@@ -3,54 +3,38 @@
 //
 const express = require('express');
 const path = require('path');
+const WebSocket = require('ws');
+const httpServer = require('http');
 
-const gwApp = express();
+// 
+// Create Express App
+//
+const app = express();
 
-const server = require('http').Server(gwApp);
-const io = require('socket.io')(server);
-var interval;
-const intervalTime = 2000; // milliseconds
+//
+// Create HTTP Server
+//
+const server = httpServer.createServer(app);
 
-server.listen(8082);
-console.log("NXT WebSocket Gateway Listening on port 8082");
+server.on('upgrade', function (req, socket, head) {
+    console.log("NXT WebSocket Gateway, upgrade request received!");
+});
+
+//
+// Initiatlize the WebSocket Server instance with HTTP server
+//
+const wss = new WebSocket.Server( { server } );
+wss.onmessage = handleMessage;
 
 // Handle WebSocket Events
 
-io.on('connection', function (client) {
-    console.log('NXT Gateway received websocket connection on port 8082');
-  
-    interval = setInterval(function () {
-        client.send('NXT Gateway server message'); 
-    }, intervalTime);
-
-    client.on('stop', function (data) {
-        console.log("NXT Gateway received stop message");
-        clearInterval(interval);
-    });
-    
-    client.on('restart', function (data) {
-        console.log("NXT Gateway received restart message");
-
-        interval = setInterval(function () {
-            client.send('NXT Gateway server message restarted'); 
-        }, intervalTime);
-    });
-
-    client.on('disconnect', function (data) {
-        console.log("NXT Gateway client disconnected");
-        clearInterval(interval);
-    });
-
+wss.on('connection', (client) => {
+    console.log("NXT WebSocket Gateway, connection event received");
 });
 
-// Unit Test code
-// console.log("sending ws://localhost:8080");
-//
-// Setup the socket.io client against our proxy
-//
-//var ws = client.connect('ws://localhost:8080');
-//
-//ws.on('message', function (msg) {
-//   console.log('NXT Gateway got message: ' + msg);
-//   ws.send('from a client');
-//});
+function handleMessage(message) {
+    console.log('received: %s', JSON.stringify(message, true, 2));
+}
+
+server.listen(8082);
+console.log("NXT WebSocket Gateway Listening on port 8082");

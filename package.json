@@ -5,11 +5,11 @@
   "main": "nxt_app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon nxt_app.js",
-    "proxy": "nodemon nxt_proxy.js",
+    "app": "nodemon nxt_app.js",
+    "agent": "nodemon nxt_agent.js",
     "gw": "nodemon nxt_gw.js",
     "portal": "nodemon nxt_portal.js",
-    "dev": "concurrently \"npm run start\" \"npm run proxy\" \"npm run portal\" \"npm run gw\""
+    "dev": "concurrently \"npm run gw\" \"npm run portal\" \"npm run agent\" \"npm run app\""
   },
   "author": "Rudy Zulkarnain",
   "license": "MIT",
@@ -27,6 +27,7 @@
     "nodemon": "^1.18.10",
     "path": "^0.12.7",
     "socket.io": "^2.2.0",
-    "socket.io-client": "^2.2.0"
+    "socket.io-client": "^2.2.0",
+    "ws": "^6.1.4"
   }
 }

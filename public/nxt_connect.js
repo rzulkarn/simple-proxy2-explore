@@ -1,40 +1,22 @@
 //
 // Setup the websocket using socket.io proxy agent
 //
-var ws;
 
-function handleWebsocketConnect() {
-    ws = io.connect('ws://localhost:8081');
+function handleConnect() {
+    $("body").append("<p><b>Connecting to http://localhost:8081/ingressgw...</b></p>");
 
-    console.log("Client connect test...");
-    
-    ws.on('connect', function (msg) {
+    const Http = new XMLHttpRequest();  
+    const url='http://localhost:8081/ingressgw';
+    Http.open("GET", url);
+    Http.send();
+    Http.onreadystatechange = (e) => {
         $("body").append("<p><b>Connected @ " + Date() + "</b></p>");
-    });
-    
-    ws.on('message', function (msg) {
-        console.log('NXT App got message: ' + msg);
         var dt = new Date();
     
         $("body").append("<p><b>... Got message @ " 
             + dt.getHours() + ":" 
             + dt.getMinutes() + ":"
             + dt.getSeconds() 
-            + " [" + msg + "]</b></p>");
-    });
-}
-
-function handleConnect() {
-    $("body").append("<p><b>Connecting to ws://localhost:8080...</b></p>");
-    handleWebsocketConnect(); // Setup Websocket / tunnel with proxy gateway
-}
-
-function handleStop() {
-    console.log('NXT app send stop message');
-    ws.emit('stop');
-}
-
-function handleRestart() {
-    console.log('NXT app send restart message');
-    ws.emit('restart');
+            + " [" + Http.responseText + "]</b></p>");
+    }
 }

@@ -2,7 +2,7 @@
 * NXT names
 
 ## Installation
-* npm install colors concurrently ejs express http-proxy nodemon socket.io socket.io-client cors @okta/oidc-middleware dotenv express-session jsonwebtoken path
+* npm install colors concurrently ejs express http-proxy nodemon socket.io socket.io-client cors @okta/oidc-middleware dotenv express-session jsonwebtoken path ws
 
 ## How to run the app, the proxy and the gateway
 * npm run dev
