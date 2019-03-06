@@ -28,7 +28,7 @@ const wss = new WebSocket.Server( { server } );
 // Handle WebSocket Events
 
 wss.on('connection', (ws, req) => {
-    console.log("NXT WebSocket Gateway, connection event received");
+    console.log("NXT WebSocket Gateway, connection event received, req:", JSON.stringify(req.headers, true, 2));
     ws.on('message', (message) => {
         console.log("NXT WebSocket Gateway, message event received");
         handleMessage(ws, message);

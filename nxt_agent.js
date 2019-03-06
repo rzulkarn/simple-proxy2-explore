@@ -57,17 +57,15 @@ var proxyServer = http.createServer(function (req, res) {
     const url = urlParser.parse(req.url);
     //const serializedReq = BSON.serialize(req);
     if (url.pathname === '/ingressgw') {
-      console.log(req);
-      var reqHeaders = req.headers;
-      var optionHeaders = { 'x-nxt-src': 'source_host',
-                            'x-nxt-dst': 'dst_host' };
-
-      extend(reqHeaders, optionHeaders);
-      //console.log(JSON.stringify(reqHeaders, 2));
-
-      transmitTunnel(JSON.stringify(reqHeaders));
-
+      //
+      // Create a custom NXT header
+      var nxtHeaders = createNxtHeader(req);
+      //
+      // Save the respond object
       globalRes = res;
+      //
+      // send the nxt headers
+      transmitTunnel(JSON.stringify(nxtHeaders));
     }
     else {
       console.log("Going to localhost 8080");
@@ -75,6 +73,29 @@ var proxyServer = http.createServer(function (req, res) {
     }
     console.log("NXT Agent HTTP handle completed for url: " + req.url);
 });
+
+function createNxtHeader(req) {
+  var reqHeaders = req.headers;
+  var optionHeaders = { 'x-nxt-src': 'source_host',
+                        'x-nxt-dst': 'dst_host' };
+
+  extend(reqHeaders, optionHeaders);
+  // 
+  // Construct a Nxt HTTP Header
+  // <method> /<url> HTTP/1.1
+  // <normal req.headers>
+
+  return reqHeaders;
+}
+
+function sendNxtHello() {
+  var hello = { access_token:'nxt-access-token' };
+  transmitTunnel(JSON.stringify(hello));
+}
+
+function createWebSocket() {
+  return new WebSocket('ws://localhost:8082/');
+}
 
 function createTunnel() {
   if (isTunnelCreated === true) {
@@ -84,7 +105,7 @@ function createTunnel() {
   console.log("NXT Agent create WebSocket tunnel!");
 
   try {
-    ws = new WebSocket('ws://localhost:8082/');
+    ws = createWebSocket();
   } 
   catch (error) {
     console.log("NXT Agent error cought!");
@@ -93,7 +114,7 @@ function createTunnel() {
       if (error.errno == ECONNREFUSED) {
         console.log("NXT Agent ECONNREFUSED cought, try again in 2 sec");
         setTimeout(() => {
-            ws = new WebSocket('ws://localhost:8082/');
+            ws = createWebSocket();
         }, 2000);
       }
     }
@@ -102,13 +123,18 @@ function createTunnel() {
 
   ws.on('open', function() {
     console.log('NXT Agent open socket communication to localhost:8082');
+    //sendNxtHello();
   });
+  
+  ws.on('upgrade', function(res) {
+    console.log('NXT Agent upgrade event received', JSON.stringify(res.headers, true, 2));
+  })
 
   ws.on('message', function(data) {
     console.log('NXT Agent got message from websocket: ' + data);
     setTimeout(() => {
       console.log("NXT Agent, sent HTTP response end!");
-      globalRes.writeHead(200);
+      //globalRes.writeHead(200);
       globalRes.end("HTTP Response End");
     },5000);
   });
