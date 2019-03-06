@@ -24,16 +24,23 @@ server.on('upgrade', function (req, socket, head) {
 // Initiatlize the WebSocket Server instance with HTTP server
 //
 const wss = new WebSocket.Server( { server } );
-wss.onmessage = handleMessage;
 
 // Handle WebSocket Events
 
-wss.on('connection', (client) => {
+wss.on('connection', (ws, req) => {
     console.log("NXT WebSocket Gateway, connection event received");
+    ws.on('message', (message) => {
+        console.log("NXT WebSocket Gateway, message event received");
+        handleMessage(ws, message);
+    });
+    ws.on('close', (reason, description) => {
+        console.log("NXT WebSocket Gateway, close event");
+    });
 });
 
-function handleMessage(message) {
-    console.log('received: %s', JSON.stringify(message, true, 2));
+function handleMessage(ws, message) {
+    console.log('NXT Websocket Gateway received: %s', message);
+    ws.send('Message received in NXT Websocket Gateway');
 }
 
 server.listen(8082);

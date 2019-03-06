@@ -33,10 +33,6 @@ app.use(session({
 app.use(oidc.router);
 
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var client = require('socket.io-client');
-var interval;
-const intervalTime = 2000; // milliseconds
 
 //
 // WebPortal Listen Port
