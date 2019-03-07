@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 // Handle unprotected routes
 //
 app.get('/dashboard', (req, res) => {
-    console.log("NXT Gateway received dashboard request");
+    console.log("NXT Portal received dashboard request");
     res.writeHead(302,{Location: 'http://grafana.com'});
     res.end();
 });
