@@ -11,13 +11,13 @@ const extend = require('extend');
 //
 // Global Variables
 //
-var nxtIdToken;
+var nxtAccessToken;
 var ws;
 var isTunnelCreated = false;
 var globalRes;
 
 //
-// Setup 2 proxies: Portal and Gateway
+// Setup 2 proxies: Portal and Ingress Gateway
 //
 var portalProxy = new httpProxy.createProxyServer({});
 
@@ -60,21 +60,20 @@ var proxyServer = http.createServer(function (req, res) {
       // else if (token && !tunnel) createTunnel()
       // else if (token && tunnel) transmitTunnel()
       //
-      let bodyBuff = Buffer.concat(body);
-      if (url === '/ingressgw') {
+      if (nxtAccessToken === undefined) {
         //
         // Create a custom NXT header
-        let nxtBuff = createNxtHttpRequest(headers, method, url, bodyBuff);
+        let nxtBuff = createNxtWsBody(headers, method, url, body);
         //
         // Save the respond object
         globalRes = res;
         //
         // send the nxt headers
-        transmitTunnel(nxtBuff);
+        nxtTunnelSend(ws, nxtBuff);
       }
       else {
         console.log("NXT Agent, going to localhost 8080 (Portal)");
-        portalProxy.web(req, res, { target: "http://localhost:8080/" } );
+        portalProxy.web(req, res, { target: 'http://localhost:8080/' });
       }
     });
 
@@ -87,59 +86,72 @@ var proxyServer = http.createServer(function (req, res) {
     console.log("NXT Agent HTTP handle completed for url: " + req.url);
 });
 
-function createNxtHttpRequest(headers, method, url, buff) {
+function createNxtWsBody(headers, method, url, bodyArray) {
   // 
-  // Create NXT Custom header
-  // <method> /<url> HTTP/1.1
-  // <normal req.headers>
+  // NXT custom header
+  // x-nxt-src: '<val>'
+  // x-nxt-dst: '<val>'
   // <empty line>
-  // <body>
+  // <client Body>
   //
   let lines = [];
 
-  lines.push(Buffer.from(`${method}` + ' ' + `${url}` + ' ' + 'HTTP/1.1' + '\r\n'));
+  // Nxt custom header
+  const { host, origin } = headers;
+  let optionHeaders = { 'x-nxt-src': `${origin}`,
+                        'x-nxt-dst': `${host}` };
+  lines.push(Buffer.from(JSON.stringify(optionHeaders)));
 
-  let optionHeaders = { 'x-nxt-src': 'source_host',
-                        'x-nxt-dst': 'dst_host' };
-  extend(headers, optionHeaders);
+  lines.push(Buffer.from('\r\n'));
+  lines.push(Buffer.from('\r\n'));
+
+  // client header
+  lines.push(Buffer.from(`${method}` + ' ' + `${url}` + ' ' + 'HTTP/1.1' + '\r\n'));
   Object.keys(headers).forEach(function(key) {
      let val = headers[key];
      lines.push(Buffer.from(`${key}` + ':' + ' ' + `${val}` + '\r\n'));
   });
-
   lines.push(Buffer.from('\r\n'));
-  //lines.push(Buffer.from(JSON.stringify(headers)));
+
+  // client body
+  if (bodyArray === undefined || Array.length == 0) {
+    // empty body!
+  } 
+  else {
+    lines.push(Buffer.from(bodyArray));
+  }
+  lines.push(Buffer.from('\r\n'));
 
   return Buffer.concat(lines).toString();
 }
 
 function createNxtHttpResponse(res, data) {
-   console.log("NXT Agent, sent HTTP response end!");
+   console.log("NXT Agent sent HTTP response end!");
    //globalRes.writeHead(200);
    res.end("HTTP Response End");
 }
 
 function sendNxtHello() {
   var hello = { access_token: 'nxt-access-token' };
-  transmitTunnel(JSON.stringify(hello));
+  nxtTunnelSend(ws, JSON.stringify(hello));
 }
 
 function createWebSocket() {
   return new WebSocket('ws://localhost:8082/');
 }
 
-function createTunnel() {
+function createNxtTunnel() {
   if (isTunnelCreated === true) {
-    console.log("NXT Agent, WebSocket tunnel created!");
+    console.log("NXT Agent ws tunnel created!");
     return ws;
   }
-  console.log("NXT Agent create WebSocket tunnel!");
+  console.log("NXT Agent create ws tunnel!");
 
   try {
     ws = createWebSocket();
   } 
   catch (error) {
-    console.log("NXT Agent error cought!");
+    console.log("NXT Agent error in create ws!");
 
     if (error instanceof SystemError) {
       if (error.errno == ECONNREFUSED) {
@@ -152,18 +164,16 @@ function createTunnel() {
   }
 
   ws.on('open', function() {
-    console.log('NXT Agent open socket communication to localhost:8082');
+    console.log('NXT Agent open ws communication to localhost:8082');
     //sendNxtHello();
   });
   
   ws.on('upgrade', function(res) {
     console.log('NXT Agent upgrade event received', JSON.stringify(res.headers, true, 2));
-  })
+  });
 
   ws.on('message', function(data) {
-    console.log('NXT Agent got message from websocket');
-
-    
+    console.log('NXT Agent got message from ws');
     setTimeout(() => {
       createNxtHttpResponse(globalRes, data);
     },5000);
@@ -177,7 +187,7 @@ function createTunnel() {
     // Create WebSocket Tunnel again!
     //
     setTimeout(() => {
-      createTunnel();
+      createNxtTunnel();
     },2000);
   })
 
@@ -189,14 +199,14 @@ function createTunnel() {
   return ws;
 }
 
-function transmitTunnel(req) {
-  console.log("NXT Agent, transmit to tunnel!");
-  ws.send(req);
+function nxtTunnelSend(wss, req) {
+  console.log("NXT Agent nxtTunnelSend()");
+  wss.send(req);
   // console.log(Object.keys(req));
 }
 
 // Temporary!! 
-createTunnel();
+createNxtTunnel();
 
 proxyServer.listen(8081);
 console.log("NXT Agent started listening to port 8081");

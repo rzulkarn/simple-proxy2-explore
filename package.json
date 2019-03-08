@@ -1,15 +1,15 @@
 {
   "name": "nxt-apps",
   "version": "1.0.0",
-  "description": "NXT Login Proxy Agent",
+  "description": "NXT Agent and Connector",
   "main": "nxt_app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "app": "nodemon nxt_app.js",
     "agent": "nodemon nxt_agent.js",
-    "gw": "nodemon nxt_gw.js",
+    "connector": "nodemon nxt_connector.js",
     "portal": "nodemon nxt_portal.js",
-    "dev": "concurrently \"npm run gw\" \"npm run portal\" \"npm run agent\" \"npm run app\""
+    "dev": "concurrently \"npm run connector\" \"npm run portal\" \"npm run agent\" \"npm run app\""
   },
   "author": "Rudy Zulkarnain",
   "license": "MIT",
