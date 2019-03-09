@@ -7,6 +7,7 @@ const httpProxy = require('http-proxy');
 const httpServer = require('http');
 const httpDestServer = require('http-proxy');
 const httpParser = require('http-string-parser');
+const common = require('./nxt_common.js');
 
 // 
 // Create Dest Proxy 
@@ -41,7 +42,7 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
         console.log("NXT Connector, message event received");
         let req = handleWSMessage(ws, message);
-        handleDestMessage(ws, req);
+        sendMessageToDst(ws, req);
     });
     ws.on('close', (reason, description) => {
         console.log("NXT Connector, close event");
@@ -68,7 +69,7 @@ function handleWSMessage(ws, message) {
 
 function handleResponseCB(res) {
     var str = '';
-      
+    console.log("NXT Connector response: ", res.headers);
     //another chunk of data has been recieved, so append it to `str`
     res.on('data', function (chunk) {
         str += chunk;
@@ -80,10 +81,11 @@ function handleResponseCB(res) {
     });
 }
 
-function handleDestMessage(ws, req) {
+function sendMessageToDst(ws, req) {
     let options = {
         host: `${req.headers['host']}`,
-        path: `${req.uri}`
+        path: `${req.uri}`,
+        headers: req.headers
     };
     
     console.log('Options: ', options);
