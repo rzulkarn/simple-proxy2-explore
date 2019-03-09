@@ -7,12 +7,17 @@
 ## How to run the app, the proxy and the gateway
 * npm run dev
 
-## Quick start
+## Browser Test
+* Configure System Web Proxy (HTTP) to 127.0.0.1:8081
+* From browser goto: http://www.undefined.com 
+* Browser will print the HTTP response packet
+
+## Unit Test
 * localhost:4000
 * localhost:4000/welcome
 
 ## Node.js Instances
-* NXT-APP : a test utility app/client
-* NXT-PROXY : a http and proxy server that listen on port 8081
-* NXT-PORTAL : a http server that listen on port 8080
-* NXT-GW : a socket.io server that listen on port 8082
+* NXT-App : a test utility app/client
+* NXT-Agent : a http and proxy agent that listen on port 8081
+* NXT-Portal : a http server that listen on port 8080
+* NXT-Connector : a websocket server listen on port 8082

@@ -13,7 +13,7 @@ const common = require('./nxt_common.js');
 // Create Dest Proxy 
 //
 var destProxy = new httpDestServer.createProxyServer({});
-
+var wsAgt;
 //
 // Create HTTP Server
 //
@@ -39,45 +39,57 @@ const wss = new WebSocket.Server( { server } );
 
 wss.on('connection', (ws, req) => {
     console.log("NXT Connector, connection event received, req:", JSON.stringify(req.headers, true, 2));
-    ws.on('message', (message) => {
+    wsAgt = ws;
+    wsAgt.on('message', (message) => {
         console.log("NXT Connector, message event received");
-        let req = handleWSMessage(ws, message);
-        sendMessageToDst(ws, req);
+        let req = handleWSMessage(wsAgt, message);
+        sendMessageToDst(wsAgt, req);
     });
-    ws.on('close', (reason, description) => {
+    wsAgt.on('close', (reason, description) => {
         console.log("NXT Connector, close event");
     });
 });
 
 function handleWSMessage(ws, message) {
     console.log('NXT Connector, message type: ', typeof message);
-    console.log(message);
+    //console.log(message);
 
-    let index = message.indexOf('\n');
-    let nxtHeader = JSON.parse(message.substring(0, index));
-    let clientData = message.substring(index + 1);
+    let nxtHeader = common.getNxtHeader(message);
+    let clientData = common.getNxtClientData(message);
 
     let req = httpParser.parseRequest(clientData);
 
-    console.log("NXT Custom Header: " + JSON.stringify(nxtHeader, true, 2));
-    console.log("Client Header", req);
+    //console.log("NXT Custom Header: " + JSON.stringify(nxtHeader, true, 2));
+    //console.log("Client Header", req);
     
-    ws.send('Message received in NXT Connector');
+    //ws.send('Message received in NXT Connector');
 
     return req;
 }
 
 function handleResponseCB(res) {
-    var str = '';
-    console.log("NXT Connector response: ", res.headers);
+    var bodyArray = [];
+    console.log('NXT Connector response CB');
     //another chunk of data has been recieved, so append it to `str`
     res.on('data', function (chunk) {
-        str += chunk;
+        bodyArray.push(chunk);
     });
       
     //the whole response has been recieved, so we just print it out here
     res.on('end', function () {
-        console.log(str);
+        console.log('NXT Connector response CB header');
+        console.log(res.headers);
+
+        //console.log(Buffer.concat(bodyArray).toString());
+        let { headers } = res;
+        let nxtBuff = common.createNxtWsResPayload(headers, 
+                                                    res.statusCode, 
+                                                    res.statusMessage, bodyArray);
+        console.log('NXT Connector sending response buffer (nxtBuff) to Agent');
+        //console.log(nxtBuff);
+
+        // Send it back to the Agent
+        wsAgt.send(nxtBuff);
     });
 }
 
@@ -88,7 +100,7 @@ function sendMessageToDst(ws, req) {
         headers: req.headers
     };
     
-    console.log('Options: ', options);
+    console.log('NXT Connector, sending to destination', options);
     httpServer.request(options, handleResponseCB).end();
 }
 
