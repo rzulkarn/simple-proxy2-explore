@@ -4,7 +4,8 @@
 ## Installation
 * npm install colors concurrently ejs express http-proxy nodemon socket.io socket.io-client cors @okta/oidc-middleware dotenv express-session jsonwebtoken path ws bson extend http-string-parser
 
-## How to run the app, the proxy and the gateway
+## How to run the app, the agent and the connector
+* create .env file (ask for the content!)
 * npm run dev
 
 ## Browser Test
