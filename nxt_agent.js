@@ -2,6 +2,7 @@
 // NXT Proxy Agent
 //
 const http = require('http');
+const https = require('https');
 const httpProxy = require('http-proxy');
 const urlParser = require('url');
 const WebSocket = require('ws');
@@ -20,6 +21,7 @@ var globalRes;
 // Setup 2 proxies: Portal and Ingress Gateway
 //
 var portalProxy = new httpProxy.createProxyServer({});
+var connectorProxy = new httpProxy.createProxyServer({});
 
 portalProxy.on('proxyReq', function (proxyReq, req, res, options) {
   // Insert NXT SRC DEST (example)
@@ -55,6 +57,7 @@ var proxyServer = http.createServer(function (req, res) {
       body.push(chunk);
     });
     req.on('end', () => {
+      console.log("NXT Agent end event received");
       // Future Logic:
       // if (!token) getToken()
       // else if (token && !tunnel) createTunnel()
@@ -70,6 +73,8 @@ var proxyServer = http.createServer(function (req, res) {
         //
         // send the nxt headers
         nxtTunnelSend(ws, nxtBuff);
+        //console.log("NXT Agent connectorProxy.web(), url: ", req.url);
+        //connectorProxy.web(req, res, { target: 'ws://localhost:8082/', ws: true } );
       }
       else {
         console.log("NXT Agent, going to localhost 8080 (Portal)");
@@ -84,6 +89,11 @@ var proxyServer = http.createServer(function (req, res) {
     //
 
     console.log("NXT Agent HTTP handle completed for url: " + req.url);
+});
+
+proxyServer.on('upgrade', function(req, socket, head) {
+  console.log("NXT Agent, upgrade event received");
+  connectorProxy.ws(req, socket, head);
 });
 
 function createNxtWsBody(headers, method, url, bodyArray) {
@@ -101,8 +111,6 @@ function createNxtWsBody(headers, method, url, bodyArray) {
   let optionHeaders = { 'x-nxt-src': `${origin}`,
                         'x-nxt-dst': `${host}` };
   lines.push(Buffer.from(JSON.stringify(optionHeaders)));
-
-  lines.push(Buffer.from('\r\n'));
   lines.push(Buffer.from('\r\n'));
 
   // client header
@@ -111,23 +119,21 @@ function createNxtWsBody(headers, method, url, bodyArray) {
      let val = headers[key];
      lines.push(Buffer.from(`${key}` + ':' + ' ' + `${val}` + '\r\n'));
   });
-  lines.push(Buffer.from('\r\n'));
 
   // client body
   if (bodyArray === undefined || Array.length == 0) {
     // empty body!
   } 
   else {
+    lines.push(Buffer.from('\r\n'));
     lines.push(Buffer.from(bodyArray));
   }
-  lines.push(Buffer.from('\r\n'));
-
   return Buffer.concat(lines).toString();
 }
 
 function createNxtHttpResponse(res, data) {
    console.log("NXT Agent sent HTTP response end!");
-   //globalRes.writeHead(200);
+   res.writeHead(200);
    res.end("HTTP Response End");
 }
 
@@ -173,10 +179,10 @@ function createNxtTunnel() {
   });
 
   ws.on('message', function(data) {
-    console.log('NXT Agent got message from ws');
+    console.log('NXT Agent got message from connector: ', data);
     setTimeout(() => {
       createNxtHttpResponse(globalRes, data);
-    },5000);
+    },4000);
   });
 
   ws.on('close', function() {

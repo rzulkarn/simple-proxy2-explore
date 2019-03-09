@@ -1,21 +1,30 @@
 //
 // NXT Connector
 //
-const express = require('express');
 const path = require('path');
 const WebSocket = require('ws');
+const httpProxy = require('http-proxy');
 const httpServer = require('http');
+const httpDestServer = require('http-proxy');
+const httpParser = require('http-string-parser');
 
 // 
-// Create Express App
+// Create Dest Proxy 
 //
-const app = express();
+var destProxy = new httpDestServer.createProxyServer({});
 
 //
 // Create HTTP Server
 //
-const server = httpServer.createServer(app);
-
+const server = httpServer.createServer(function(req, res) {
+    console.log("NXT Connector, HTTP request received: ", JSON.stringify(req.headers, true, 2));
+    let hostname = 'http://' + req.headers['host'];
+    console.log("NXT Connector, host: ", hostname);
+    destProxy.web(req, res, { target: `${hostname}` } );
+});
+ 
+//
+// 
 server.on('upgrade', function (req, socket, head) {
     console.log("NXT Connector, upgrade request received!");
 });
@@ -31,29 +40,54 @@ wss.on('connection', (ws, req) => {
     console.log("NXT Connector, connection event received, req:", JSON.stringify(req.headers, true, 2));
     ws.on('message', (message) => {
         console.log("NXT Connector, message event received");
-        handleMessage(ws, message);
+        let req = handleWSMessage(ws, message);
+        handleDestMessage(ws, req);
     });
     ws.on('close', (reason, description) => {
         console.log("NXT Connector, close event");
     });
 });
 
-function handleMessage(ws, message) {
+function handleWSMessage(ws, message) {
     console.log('NXT Connector, message type: ', typeof message);
-    let currentMessage = message.toString().split(/(?:\r\n|\r|\n)/g);
-    for (var line = 0; line < currentMessage.length; line++) {
-        // line 0 = Nxt Custom Header
-        // line 1 = \r\n
-        // line 2 = Client HTTP Header + Client Body
-        //
-        if (line === 0) {
-            var nxtHeader = JSON.parse(currentMessage[line]);
-            console.log("NXT Custom Header: " + JSON.stringify(nxtHeader, true, 2));
-        }
+    console.log(message);
 
-        console.log(currentMessage[line]);
-    }
+    let index = message.indexOf('\n');
+    let nxtHeader = JSON.parse(message.substring(0, index));
+    let clientData = message.substring(index + 1);
+
+    let req = httpParser.parseRequest(clientData);
+
+    console.log("NXT Custom Header: " + JSON.stringify(nxtHeader, true, 2));
+    console.log("Client Header", req);
+    
     ws.send('Message received in NXT Connector');
+
+    return req;
+}
+
+function handleResponseCB(res) {
+    var str = '';
+      
+    //another chunk of data has been recieved, so append it to `str`
+    res.on('data', function (chunk) {
+        str += chunk;
+    });
+      
+    //the whole response has been recieved, so we just print it out here
+    res.on('end', function () {
+        console.log(str);
+    });
+}
+
+function handleDestMessage(ws, req) {
+    let options = {
+        host: `${req.headers['host']}`,
+        path: `${req.uri}`
+    };
+    
+    console.log('Options: ', options);
+    httpServer.request(options, handleResponseCB).end();
 }
 
 server.listen(8082);
