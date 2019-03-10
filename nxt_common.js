@@ -94,9 +94,11 @@ module.exports = {
     return Buffer.concat(lines).toString();
   },
 
-  sendNxtResponse : function (res, data) {
+  sendNxtResponse : function (res, statusCode, headers, body) {
     console.log("NXT Common sent HTTP response end!");
-    res.end(data);
+    res.writeHead(statusCode, headers);
+    res.write(body);
+    res.end();
   },
 
   sendNxtHello : function (socket) {
@@ -110,7 +112,12 @@ module.exports = {
   },
 
   createWebSocket : function (uri) {
+    // to inteoperate with nxt cloud, we need to add these headers
+    // these 2 headers are hardcoded inside the node_modules/ws/lib/websocket.js
+    // there is no API to set extra-headers
+    let extension = {'x-nextensio-codec': 'text',
+                     'x-nextensio-for' : 'abc.com'};
     return new WebSocket(uri);
   },
-  
+
 };

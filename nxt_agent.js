@@ -7,6 +7,7 @@ const httpProxy = require('http-proxy');
 const urlParser = require('url');
 const WebSocket = require('ws');
 const extend = require('extend');
+const httpParser = require('http-string-parser');
 const common = require('./nxt_common.js');
 
 //
@@ -18,10 +19,14 @@ var globalRes;
 var agtWs;
 
 //
+// Mesh Network
+//
+const NXT_INGRESS_MESH = 'ws://localhost:8082/';
+
+//
 // Setup 2 proxies: Portal and Ingress Gateway
 //
 var portalProxy = new httpProxy.createProxyServer({});
-var connectorProxy = new httpProxy.createProxyServer({});
 
 portalProxy.on('proxyReq', function (proxyReq, req, res, options) {
   // Insert NXT SRC DEST (example)
@@ -76,8 +81,6 @@ var proxyServer = http.createServer(function (req, res) {
         console.log(nxtBuff);
 
         common.sendToNxtTunnel(agtWs, nxtBuff);
-        //console.log("NXT Agent connectorProxy.web(), url: ", req.url);
-        //connectorProxy.web(req, res, { target: 'ws://localhost:8082/', ws: true } );
       }
       else {
         console.log('NXT Agent, going to localhost 8080 (Portal)');
@@ -107,17 +110,17 @@ function createNxtTunnel() {
   console.log('NXT Agent create agtWs tunnel!');
 
   try {
-    agtWs = common.createWebSocket('ws://localhost:8082/');
+    agtWs = common.createWebSocket(NXT_INGRESS_MESH);
   } 
   catch (error) {
     console.log('NXT Agent error in create ws!');
-    setTimeout(() => {
-        agtWs = common.createWebSocket('ws://localhost:8082/');
+    setTimeout(function() {
+       agtWs = common.createWebSocket(NXT_INGRESS_MESH);
     }, 2000);
   }
 
   agtWs.on('open', function() {
-    console.log('NXT Agent open ws communication to localhost:8082');
+    console.log('NXT Agent open ws communication to ' + NXT_INGRESS_MESH);
     //sendNxtHello();
   });
   
@@ -133,7 +136,10 @@ function createNxtTunnel() {
     let nxtHeader = common.getNxtHeader(data);
     let clientData = common.getNxtClientData(data);
 
-    common.sendNxtResponse(globalRes, clientData);
+    let res = httpParser.parseResponse(clientData);
+    //console.log(res);
+
+    common.sendNxtResponse(globalRes, res.statusCode, res.headers, res.body);
   });
 
   agtWs.on('close', function() {
@@ -144,7 +150,7 @@ function createNxtTunnel() {
     // Create WebSocket Tunnel again!
     //
     setTimeout(() => {
-      createNxtTunnel();
+      agtWs = createNxtTunnel();
     },2000);
   })
 
@@ -157,7 +163,7 @@ function createNxtTunnel() {
 }
 
 // Temporary!! 
-createNxtTunnel();
+agtWs = createNxtTunnel();
 
 proxyServer.listen(8081);
 console.log('NXT Agent started listening to port 8081');
