@@ -106,62 +106,6 @@ function sendMessageToDst(ws, req) {
     httpServer.request(options, handleResponseCB).end();
 }
 
-// function createNxtEgressTunnel() {
-//     if (isTunnelCreated === true) {
-//       console.log('NXT Agent ws tunnel created!');
-//       return agtWs;
-//     }
-//     console.log('NXT Agent create agtWs tunnel!');
-  
-//     try {
-//       agtWs = common.createWebSocket(NXT_INGRESS_MESH);
-//     } 
-//     catch (error) {
-//       console.log('NXT Agent error in create ws!');
-//       setTimeout(() => {
-//           agtWs = common.createWebSocket(NXT_INGRESS_MESH);
-//       }, 2000);
-//     }
-  
-//     agtWs.on('open', function() {
-//       console.log('NXT Agent open ws communication to localhost:8082');
-//       //sendNxtHello();
-//     });
-    
-//     agtWs.on('upgrade', function(res) {
-//       console.log('NXT Agent upgrade event received', JSON.stringify(res.headers, true, 2));
-//     });
-  
-//     agtWs.on('message', function(data) {
-//       console.log('NXT Agent got message from connector');
-//       //console.log(data);
-  
-//       let index = data.indexOf('\n');
-//       let nxtHeader = common.getNxtHeader(data);
-//       let clientData = common.getNxtClientData(data);
-  
-//       common.sendNxtResponse(globalRes, clientData);
-//     });
-  
-//     agtWs.on('close', function() {
-//       console.log('NXT Agent, close event received');
-//       isTunnelCreated = false;
-//       agtWs = null;
-//       //
-//       // Create WebSocket Tunnel again!
-//       //
-//       setTimeout(() => {
-//         createNxtTunnel();
-//       },2000);
-//     })
-  
-//     agtWs.on('error', function(err) {
-//       console.error(err.stack);
-//     })
-  
-//     isTunnelCreated = true;
-//     return agtWs;
-// }
 
 server.listen(8082);
 console.log("NXT Connector Listening on port 8082");
