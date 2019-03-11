@@ -9,8 +9,6 @@ const httpDestServer = require('http-proxy');
 const httpParser = require('http-string-parser');
 const common = require('./nxt_common.js');
 
-const NXT_EGRESS_MESH = 'ws://egress.mesh.nextensio.net';
-
 // 
 // Create Dest Proxy 
 //
